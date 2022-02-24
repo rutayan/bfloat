@@ -25,14 +25,14 @@ private:
     std::uint32_t bits;
     std::uint32_t bitsNext = bits + halfValue_;
 
-    bool halfwayAndEven = (bits & 0x1FFFF) == 0x08000; // FIX THIS
-    bool signChange = ((bits ^ bitsNext) & (1 << 31)) > 0; // FIX THIS
+    bool halfwayAndEven = (bits & 0x1FFFF) == halfValue_; // FIX THIS
+    bool signChange = ((bits ^ bitsNext) & (1 << 31)) > 0;
 
     if (halfwayAndEven || signChange) {
       bitsNext = bits;
     }
 
-    std::uint32_t resultBits = bitsNext >> 16; // FIX THIS
+    std::uint32_t resultBits = bitsNext >> numFlushBits_; // FIX THIS
     
     float result;
     std::memcpy(&result, &resultBits, sizeof(result));
@@ -41,7 +41,11 @@ private:
   }
 
   static constexpr unsigned maxSignificandBits_ = 23; // FP32
-  static constexpr unsigned halfValue_ = maxSignificandBits_ - NumSignificandBits - 1;
+  static constexpr unsigned numSignBits_ = 1;
+  static constexpr unsigned numExponentBits_ = 8;
+
+  static constexpr unsigned halfValue_ = 1 << (maxSignificandBits_ - NumSignificandBits - 1);
+  static constexpr unsigned numFlushBits_ = std::numeric_limits<float>::digits - numSignBits_ + numExponentBits_ + NumSignificandBits;
 };
 
 int main(){
